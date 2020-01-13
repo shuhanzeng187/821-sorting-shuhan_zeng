@@ -1,0 +1,731 @@
+%Q21
+ramp=X(1,:);
+restroom=X(2,:);
+walleye=X(3,:);
+salmon=X(4,:);
+panfish=X(5,:);
+shares=X(6,:);
+for a=[1:2404]
+for b=[1:100]
+  if L(a)==b
+      y(a,b)=1;
+  else
+      y(a,b)=0;
+  end
+end
+end
+global X
+global Z
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global I
+global y
+%mle
+options = optimset('MaxFunEvals',1000000,'MaxIter',500000,'PlotFcns',@optimplotfval,'TolFun',1e-6,'TolX',1e-6);
+x0=[0;0;0;0;0;0;0];
+[alphaQ1,LQ1]=fminsearch(@fQ1,x0,options);
+%%%%%%%%%
+%Q22
+kids=I(2,:);
+boat=I(1,:);
+ones=I(3,:);
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+pan_kids=(panfish'*kids)';
+rest_kids=(restroom'*kids)';
+ramp_boat=(ramp'*boat)';
+wall_boat=(walleye'*boat)';
+options = optimset('MaxFunEvals',1000000,'MaxIter',500000,'PlotFcns',@optimplotfval,'TolFun',1e-5,'TolX',1e-5);
+x02=[0,0,0,0,0,0,0,0,0,0];
+alphaQ2=fminsearch(@fQ2,x02,options);
+x02=alphaQ2;
+alphaQ2=fminsearch(@fQ2,x02,options);
+%%%%%%%%%%%%
+%Q23
+%alpha0=[alphaQ2(10),alphaQ2(6),alphaQ2(7),alphaQ2(8),alphaQ2(9)];
+alpha0=[0,0,0,0,0];
+theta0=zeros(size(panfish));
+LQ30=10000000000000000;
+LQ31=10000;
+n=0;
+k=0;
+while LQ30>LQ31|LQ31>5500
+for a=[1:2404]
+    for b=[1:100]
+        s(a,b)=exp(theta0(b)+alpha0(1)*Z(a,b)+ alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b));
+    end
+end
+ssumb=sum(s,2);
+s0=mean(s./ssumb);
+error=ones(size(s0));
+while max(error)>0.000001
+    theta1=theta0+(log(shares)-log(s0));
+    error=abs(theta1-theta0);
+    theta0=theta1;
+    for a=[1:2404]
+    for b=[1:100]
+        s(a,b)=exp(theta0(b)+alpha0(1)*Z(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b));
+    end
+    end
+ssumb=sum(s,2);
+s0=mean(s./ssumb);
+k=k+1;
+end
+global theta0
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000);
+x03=alpha0;
+LQ30=LQ31;
+[alphaQ3,LQ31]=fminsearch(@fQ3,x03,options);
+alpha0=alphaQ3;
+n=n+1;
+end
+XQ3=[ramp;restroom;walleye;salmon;panfish;ones([1:100])]';
+betaQ3=inv(XQ3'*XQ3)*(XQ3'*theta0');
+%%%%%%%%%%%%
+%Q24
+v=randn(2404,1);
+global v
+alphaQ40=[0,0,0,0,0];
+thetaQ40=zeros(size(panfish));
+LQ40=10000000000000000;
+LQ41=100000;
+n=0;
+k=0;
+while LQ40>LQ41|LQ41>11000
+for a=[1:2404]
+    for b=[1:100]
+        sQ24(a,b)=exp(thetaQ40(b)+alphaQ40(1)*Z(a,b)+alphaQ40(2)*pan_kids(a,b)+alphaQ40(3)*ramp_boat(a,b)+alphaQ40(4)*rest_kids(a,b)+alphaQ40(5)*wall_boat(a,b)+v(a)*walleye(b));
+    end
+end
+ssumbQ24=sum(sQ24,2);
+s0Q24=mean(sQ24./ssumbQ24);
+errorQ24=ones(size(s0Q24));
+while max(errorQ24)>0.000001
+    thetaQ41=thetaQ40+(log(shares)-log(s0Q24));
+    errorQ24=abs(thetaQ41-thetaQ40);
+    thetaQ40=thetaQ41;
+    for a=[1:2404]
+    for b=[1:100]
+        sQ24(a,b)=exp(thetaQ40(b)+alphaQ40(1)*Z(a,b)+alphaQ40(2)*pan_kids(a,b)+alphaQ40(3)*ramp_boat(a,b)+alphaQ40(4)*rest_kids(a,b)+alphaQ40(5)*wall_boat(a,b)+v(a)*walleye(b));
+    end
+    end
+ssumbQ24=sum(sQ24,2);
+s0Q24=mean(sQ24./ssumbQ24);
+k=k+1;
+end
+global thetaQ40
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000);
+x04=alphaQ40;
+LQ40=LQ41;
+[alphaQ24,LQ41]=fminsearch(@fQ4,x04,options);
+alphaQ40=alphaQ24;
+n=n+1;
+end
+XQ24=[ramp;restroom;walleye;salmon;panfish;ones([1:100])]';
+betaQ24=inv(XQ24'*XQ24)*(XQ24'*thetaQ40');
+%%%%%%%%%%%%
+%Q31
+%i
+shares=X(6,:)*100;
+global shares
+options = optimset('MaxFunEvals',1000000,'MaxIter',500000,'PlotFcns',@optimplotfval,'TolFun',1e-30,'TolX',1e-30);
+x0=[0,0,0,0,0,0,0];
+[alphaQ311,LQ311]=fminsearch(@fQ311,x0,options);
+x0=alphaQ311;
+[alphaQ311,LQ311]=fminsearch(@fQ311,x0,options);
+%ii
+options = optimset('MaxFunEvals',1000000,'MaxIter',500000,'PlotFcns',@optimplotfval,'TolFun',1e-50,'TolX',1e-50);
+xQ312=[0,0,0,0,0,0,0,0,0,0,0];
+[alphaQ312,LQ312]=fminsearch(@fQ312,xQ312,options);
+xQ312=alphaQ312;
+[alphaQ312,LQ312]=fminsearch(@fQ312,xQ312,options);
+%iii
+XQ313=[ramp;restroom;walleye;salmon;panfish;ones([1:100]);shares]';
+betaQ313=inv(XQ313'*XQ313)*(XQ313'*theta0');
+%%%%%%%%%%%%%
+%Q32
+%generate instruments
+XQ32=[ramp;restroom;walleye;salmon;panfish;ones([1:100])]';
+betaQ32=betaQ313(1:6);
+XbetaQ32=XQ32*betaQ32;
+for a=[1:2404]
+for b=[1:100]
+  PQ32(a,b)=exp(alpha0(1)*Z(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b)+XbetaQ32(b)); 
+end
+end
+LsumbQ32=PQ32./sum(PQ32,2);
+estshares=sum(LsumbQ32/2404)*100;
+%2SLS
+betaQ322first=inv([ramp;restroom;walleye;salmon;panfish;ones([1:100]);estshares]*[ramp;restroom;walleye;salmon;panfish;ones([1:100]);estshares]')*([ramp;restroom;walleye;salmon;panfish;ones([1:100]);estshares]*shares');
+instrument=[ramp;restroom;walleye;salmon;panfish;ones([1:100]);estshares]'*betaQ322first;
+%
+XQ322=[ramp;restroom;walleye;salmon;panfish;instrument';ones([1:100])]';
+betaQ322=inv(XQ322'*XQ322)*(XQ322'*theta0');
+%%%%%%%%%%%%%
+%Q4
+%scenario a(30% increase in walleye catch rates at all sites included in the model)
+shares=X(6,:)*100;
+walleye_incre=walleye*1.3;
+%i(partial)
+XbetaQ4ai=XQ322*betaQ322;
+for a=[1:2404]
+for b=[1:100]
+  PQ4ai(a,b)=exp(alpha0(1)*Z(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b)+theta0(b)); 
+end
+end
+ai_before=log(sum(PQ4ai,2));
+wall_boat_after=wall_boat*1.3;
+for a=[1:2404]
+for b=[1:100]
+  PQ4ai2(a,b)=exp(alpha0(1)*Z(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat_after(a,b)+theta0(b)); 
+end
+end
+ai_after=log(sum(PQ4ai2,2));
+CV=-(ai_after-ai_before)/alpha0(1);
+CV_mean=mean(CV);
+%ii
+shares=X(6,:);
+global thetaQ4aii0
+global wall_boat_after
+%first stage-get theta
+alphaQ4aii0=[0,0,0,0,0];
+thetaQ4aii0=zeros(size(panfish));
+LQ4aii0=10000000000000000;
+LQ4aii1=10000;
+n=0;
+k=0;
+while LQ4aii0>LQ4aii1|LQ4aii1>5500
+for a=[1:2404]
+    for b=[1:100]
+        sQ4aii(a,b)=exp(thetaQ4aii0(b)+alphaQ4aii0(1)*Z(a,b)+ alphaQ4aii0(2)*pan_kids(a,b)+alphaQ4aii0(3)*ramp_boat(a,b)+alphaQ4aii0(4)*rest_kids(a,b)+alphaQ4aii0(5)*wall_boat_after(a,b));
+    end
+end
+ssumbQ4aii=sum(sQ4aii,2);
+sQ4aii0=mean(sQ4aii./ssumbQ4aii);
+errorQ4aii=ones(size(sQ4aii0));
+while max(errorQ4aii)>0.000001
+    thetaQ4aii1=thetaQ4aii0+(log(shares)-log(sQ4aii0));
+    errorQ4aii=abs(thetaQ4aii1-thetaQ4aii0);
+    thetaQ4aii0=thetaQ4aii1;
+    for a=[1:2404]
+    for b=[1:100]
+        sQ4aii(a,b)=exp(thetaQ4aii0(b)+alphaQ4aii0(1)*Z(a,b)+alphaQ4aii0(2)*pan_kids(a,b)+alphaQ4aii0(3)*ramp_boat(a,b)+alphaQ4aii0(4)*rest_kids(a,b)+alphaQ4aii0(5)*wall_boat_after(a,b));
+    end
+    end
+ssumbQ4aii=sum(sQ4aii,2);
+sQ4aii0=mean(sQ4aii./ssumbQ4aii);
+k=k+1;
+end
+global thetaQ4aii0
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000);
+x04aii=alphaQ4aii0;
+LQ4aii0=LQ4aii1;
+[alphaQ4aii,LQ4aii1]=fminsearch(@fQ4aii,x04aii,options);
+alphaQ4aii0=alphaQ4aii;
+n=n+1;
+end
+% get CV
+for a=[1:2404]
+for b=[1:100]
+  PQ4aii3(a,b)=exp(alphaQ4aii0(1)*Z(a,b)+alphaQ4aii0(2)*pan_kids(a,b)+alphaQ4aii0(3)*ramp_boat(a,b)+alphaQ4aii0(4)*rest_kids(a,b)+alphaQ4aii0(5)*wall_boat_after(a,b)+thetaQ4aii0(b)); 
+end
+end
+aii_after=log(sum(PQ4aii3,2));
+CVii=-(aii_after-ai_before)/alphaQ4aii0(1);
+CVii_mean=mean(CVii);
+%b
+shares=X(6,:);
+for b=[1:100]
+    if shares(b)>0.015
+walleye_incre_b(b)=walleye(b)*1.3;
+    else 
+  walleye_incre_b(b)=walleye(b);
+    end
+end
+wall_boat_after_b=(walleye_incre_b'*boat)';
+for a=[1:2404]
+for b=[1:100]
+  PQ4bi2(a,b)=exp(alpha0(1)*Z(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat_after_b(a,b)+theta0(b)); 
+end
+end
+bi_after=log(sum(PQ4bi2,2));
+CVb=-(bi_after-ai_before)/alpha0(1);
+id=X(6,:)>0.015;
+A=find(id==1);
+B=ismember(L,A);
+CV_mean_b_affected=mean(CVb(B==1));
+CV_mean_b_unaffected=mean(CVb(B==0));
+%ii
+shares=X(6,:);
+global thetaQ4aii0
+global wall_boat_after
+%first stage-get theta
+alphaQ4aii0=[0,0,0,0,0];
+thetaQ4aii0=zeros(size(panfish));
+LQ4aii0=10000000000000000;
+LQ4aii1=10000;
+n=0;
+k=0;
+while LQ4bii0>LQ4bii1|LQ4bii1>5500
+for a=[1:2404]
+    for b=[1:100]
+        sQ4bii1(a,b)=exp(thetaQ4bii0(b)+alphaQ4bii0(1)*Z(a,b)+alphaQ4bii0(2)*pan_kids(a,b)+alphaQ4bii0(3)*ramp_boat(a,b)+alphaQ4bii0(4)*rest_kids(a,b)+alphaQ4bii0(5)*wall_boat_after_b(a,b));
+    end
+end
+ssumbQ4bii=sum(sQ4bii1,2);
+sQ4bii0=mean(sQ4bii1./ssumbQ4bii);
+errorQ4bii=ones([1:100]);
+while max(errorQ4bii)>0.000001
+    thetaQ4bii1=thetaQ4bii0+(log(shares)-log(sQ4bii0));
+    errorQ4bii=abs(thetaQ4bii1-thetaQ4bii0);
+    thetaQ4bii0=thetaQ4bii1;
+    for a=[1:2404]
+    for b=[1:100]
+        sQ4bii2(a,b)=exp(thetaQ4bii0(b)+alphaQ4bii0(1)*Z(a,b)+alphaQ4bii0(2)*pan_kids(a,b)+alphaQ4bii0(3)*ramp_boat(a,b)+alphaQ4bii0(4)*rest_kids(a,b)+alphaQ4bii0(5)*wall_boat_after_b(a,b));
+    end
+    end
+ssumbQ4bii2=sum(sQ4bii2,2);
+sQ4bii0=mean(sQ4bii2./ssumbQ4bii2);
+k=k+1;
+end
+global thetaQ4bii0
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000,'TolFun',1e-6,'TolX',1e-6);
+x04bii=alphaQ4bii0;
+LQ4bii0=LQ4bii1;
+[alphaQ4bii,LQ4bii1]=fminsearch(@fQ4bii,x04bii,options);
+alphaQ4bii0=alphaQ4bii;
+n=n+1;
+end
+shares=X(6,:)*100;
+%get CV
+for a=[1:2404]
+for b=[1:100]
+  PQ4bii3(a,b)=exp(alphaQ4bii0(1)*Z(a,b)+alphaQ4bii0(2)*pan_kids(a,b)+alphaQ4bii0(3)*ramp_boat(a,b)+alphaQ4bii0(4)*rest_kids(a,b)+alphaQ4bii0(5)*wall_boat_after_b(a,b)+thetaQ4bii0(b)); 
+end
+end
+bii_after=log(sum(PQ4bii3,2));
+CVii_b=-(bii_after-ai_before)/alphaQ4bii0(1);
+id=X(6,:)>0.015;
+A=find(id==1);
+B=ismember(L,A);
+CV_mean_bii_affected=mean(CVii_b(B==1));
+CV_mean_bii_unaffected=mean(CVii_b(B==0));
+%c
+id=X(6,:)>0.015;
+X_after=X;
+Z_c=Z;
+X_after(:,id)=[];
+ramp=X_after(1,:);
+restroom=X_after(2,:);
+walleye=X_after(3,:);
+salmon=X_after(4,:);
+panfish=X_after(5,:);
+shares=X_after(6,:);
+global X_after
+global Z_c
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global I
+global y
+kids=I(2,:);
+boat=I(1,:);
+ones=I(3,:);
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+pan_kids=(panfish'*kids)';
+rest_kids=(restroom'*kids)';
+ramp_boat=(ramp'*boat)';
+wall_boat=(walleye'*boat)';
+Z_c(:,id)=[];
+A=find(id==1);
+for a=[1:2404]
+    if ismember(L(a),A)==0;
+        L_after(a)=L(a);
+    else 
+        L_after(a)=0;
+    end
+end
+for a=[1:2404]
+for b=[1:100]
+  if L_after(a)==b
+      y(a,b)=1;
+  else
+      y(a,b)=0;
+  end
+end
+end
+y(:,id)=[];
+%i
+id=X(6,:)>0.015;
+A=find(id==1);
+theta0(A)=[];
+for a=[1:2404]
+for b=[1:82]
+  PQ4ci2(a,b)=exp(alpha0(1)*Z_c(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b)+theta0(b)); 
+end
+end
+ci_after=log(sum(PQ4ci2,2));
+CVc=-(ci_after-ai_before)/alpha0(1);
+B=ismember(L,A);
+CV_mean_ci_affected=mean(CVc(B==1));
+CV_mean_ci_unaffected=mean(CVc(B==0));
+%ii
+shares=X_after(6,:)/sum(X_after(6,:));
+alpha0=[0,0,0,0,0];
+theta0=zeros(size(panfish));
+LQ30=10000000000000000;
+LQ31=10000;
+n=0;
+k=0;
+while LQ30>LQ31||LQ31>5500
+for a=[1:2404]
+    for b=[1:82]
+        s(a,b)=exp(theta0(b)+alpha0(1)*Z_c(a,b)+ alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b));
+    end
+end
+ssumb=sum(s,2);
+s0=mean(s./ssumb);
+error=ones(size(s0));
+while max(error)>0.000001
+    theta1=theta0+(log(shares)-log(s0));
+    error=abs(theta1-theta0);
+    theta0=theta1;
+    for a=[1:2404]
+    for b=[1:82]
+        s(a,b)=exp(theta0(b)+alpha0(1)*Z_c(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b));
+    end
+    end
+ssumb=sum(s,2);
+s0=mean(s./ssumb);
+k=k+1;
+end
+global theta0
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000);
+x03=alpha0;
+LQ30=LQ31;
+[alphaQ3,LQ31]=fminsearch(@fQ4cii,x03,options);
+alpha0=alphaQ3;
+n=n+1;
+end
+shares=(X_after(6,:)/sum(X_after(6,:)))*100;
+% get CV
+for a=[1:2404]
+for b=[1:82]
+  PQ4cii3(a,b)=exp(alpha0(1)*Z_c(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b)+theta0(b)); 
+end
+end
+cii_after=log(sum(PQ4cii3,2));
+CViic=-(cii_after-ai_before)/alpha0(1);
+id=X(6,:)>0.015;
+A=find(id==1);
+B=ismember(L,A);
+CV_mean_cii_affected=mean(CViic(B==1));
+CV_mean_cii_unaffected=mean(CViic(B==0));
+%d
+global Z_after
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global I
+global y
+ramp=X(1,:);
+restroom=X(2,:);
+walleye=X(3,:);
+salmon=X(4,:);
+panfish=X(5,:);
+shares=X(6,:);
+for a=[1:2404]
+for b=[1:100]
+  if L(a)==b
+      y(a,b)=1;
+  else
+      y(a,b)=0;
+  end
+end
+end
+kids=I(2,:);
+boat=I(1,:);
+ones=I(3,:);
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+pan_kids=(panfish'*kids)';
+rest_kids=(restroom'*kids)';
+ramp_boat=(ramp'*boat)';
+wall_boat=(walleye'*boat)';
+for b=[1:100]
+    if shares(b)>0.015
+        Z_after(:,b)=Z(:,b)+10;
+    else
+        Z_after(:,b)=Z(:,b);
+    end
+end
+%i(partial)
+for a=[1:2404]
+for b=[1:100]
+  PQ4di2(a,b)=exp(alpha0(1)*Z_after(a,b)+alpha0(2)*pan_kids(a,b)+alpha0(3)*ramp_boat(a,b)+alpha0(4)*rest_kids(a,b)+alpha0(5)*wall_boat(a,b)+theta0(b)); 
+end
+end
+di_after=log(sum(PQ4di2,2));
+CV_d=-(di_after-ai_before)/alpha0(1);
+id=X(6,:)>0.015;
+A=find(id==1);
+B=ismember(L,A);
+CV_mean_di_affected=mean(CV_d(B==1));
+CV_mean_di_unaffected=mean(CV_d(B==0));
+%ii
+shares=X(6,:);
+global thetaQ4dii0
+%first stage-get theta
+alphaQ4dii0=[0,0,0,0,0];
+thetaQ4dii0=zeros(size(panfish));
+LQ4dii0=10000000000000000;
+LQ4dii1=10000;
+n=0;
+k=0;
+while LQ4dii0>LQ4dii1||LQ4dii1>5500
+for a=[1:2404]
+    for b=[1:100]
+        sQ4dii(a,b)=exp(thetaQ4dii0(b)+alphaQ4dii0(1)*Z_after(a,b)+ alphaQ4dii0(2)*pan_kids(a,b)+alphaQ4dii0(3)*ramp_boat(a,b)+alphaQ4dii0(4)*rest_kids(a,b)+alphaQ4dii0(5)*wall_boat(a,b));
+    end
+end
+ssumbQ4dii=sum(sQ4dii,2);
+sQ4dii0=mean(sQ4dii./ssumbQ4dii);
+errorQ4dii=ones(size(sQ4dii0));
+while max(errorQ4dii)>0.000001
+    thetaQ4dii1=thetaQ4dii0+(log(shares)-log(sQ4dii0));
+    errorQ4dii=abs(thetaQ4dii1-thetaQ4dii0);
+    thetaQ4dii0=thetaQ4dii1;
+    for a=[1:2404]
+    for b=[1:100]
+        sQ4dii(a,b)=exp(thetaQ4dii0(b)+alphaQ4dii0(1)*Z_after(a,b)+alphaQ4dii0(2)*pan_kids(a,b)+alphaQ4dii0(3)*ramp_boat(a,b)+alphaQ4dii0(4)*rest_kids(a,b)+alphaQ4dii0(5)*wall_boat(a,b));
+    end
+    end
+ssumbQ4dii=sum(sQ4dii,2);
+sQ4dii0=mean(sQ4dii./ssumbQ4dii);
+k=k+1;
+end
+global thetaQ4dii0
+options = optimset('MaxFunEvals',1000000,'MaxIter',50000);
+x04dii=alphaQ4dii0;
+LQ4dii0=LQ4dii1;
+[alphaQ4dii,LQ4dii1]=fminsearch(@fQ4dii,x04dii,options);
+alphaQ4dii0=alphaQ4dii;
+n=n+1;
+end
+shares=X(6,:)*100;
+% get CV
+for a=[1:2404]
+for b=[1:100]
+  PQ4dii3(a,b)=exp(alphaQ4dii0(1)*Z_after(a,b)+alphaQ4dii0(2)*pan_kids(a,b)+alphaQ4dii0(3)*ramp_boat(a,b)+alphaQ4dii0(4)*rest_kids(a,b)+alphaQ4dii0(5)*wall_boat(a,b)+thetaQ4dii0(b)); 
+end
+end
+dii_after=log(sum(PQ4dii3,2));
+CVii_d=-(dii_after-ai_before)/alphaQ4dii0(1);
+id=X(6,:)>0.015;
+A=find(id==1);
+B=ismember(L,A);
+CV_mean_dii_affected=mean(CVii_d(B==1));
+CV_mean_dii_unaffected=mean(CVii_d(B==0));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%function
+function LQ1 = fQ1(alpha)
+global Z
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global y
+for a=[1:2404]
+for b=[1:100]
+  P(a,b)=exp(alpha(1)*ramp(b)+alpha(2)*restroom(b)+alpha(3)*walleye(b)+alpha(4)*salmon(b)+alpha(5)*panfish(b)+alpha(6)*Z(a,b)+alpha(7)); 
+end
+end
+Lsumb=P./sum(P,2);
+ l=log(Lsumb.^y);
+LQ1=-(sum(l,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ2 = fQ2(alpha)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global y
+for a=[1:2404]
+for b=[1:100]
+  PQ2(a,b)=exp(alpha(1)*ramp(b)+alpha(2)*restroom(b)+alpha(3)*walleye(b)+alpha(4)*salmon(b)+alpha(5)*panfish(b)+alpha(6)*pan_kids(a,b)+alpha(7)*ramp_boat(a,b)+alpha(8)*rest_kids(a,b)+alpha(9)*wall_boat(a,b)+alpha(10)*Z(a,b)); 
+end
+end
+LsumbQ2=PQ2./sum(PQ2,2);
+ lQ2=log(LsumbQ2.^y);
+LQ2=-(sum(lQ2,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ3 = fQ3(alphaQ3)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z
+global theta0
+global y
+for a=[1:2404]
+for b=[1:100]
+  PQ3(a,b)=exp(theta0(b)+alphaQ3(1)*Z(a,b)+ alphaQ3(2)*pan_kids(a,b)+alphaQ3(3)*ramp_boat(a,b)+alphaQ3(4)*rest_kids(a,b)+alphaQ3(5)*wall_boat(a,b));
+    end
+end
+lQ3=log((PQ3./sum(PQ3,2)).^y);
+LQ3=-(sum(lQ3,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ4 = fQ4(alphaQ24)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z
+global thetaQ40
+global y
+global walleye
+global v
+for a=[1:2404]
+for b=[1:100]
+  PQ24(a,b)=exp(thetaQ40(b)+alphaQ24(1)*Z(a,b)+alphaQ24(2)*pan_kids(a,b)+alphaQ24(3)*ramp_boat(a,b)+alphaQ24(4)*rest_kids(a,b)+alphaQ24(5)*wall_boat(a,b)+v(b)*walleye(b));
+end
+end
+lQ24=log((PQ24./sum(PQ24,2)).^y);
+LQ4=-(sum(lQ24,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%
+function LQ4aii= fQ4aii(alphaQ4aii)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat_after
+global Z
+global thetaQ4aii0
+global y
+for a=[1:2404]
+for b=[1:100]
+  PQ4aii(a,b)=exp(thetaQ4aii0(b)+alphaQ4aii(1)*Z(a,b)+ alphaQ4aii(2)*pan_kids(a,b)+alphaQ4aii(3)*ramp_boat(a,b)+alphaQ4aii(4)*rest_kids(a,b)+alphaQ4aii(5)*wall_boat_after(a,b));
+    end
+end
+lQ4aii=log((PQ4aii./sum(PQ4aii,2)).^y);
+LQ4aii=-(sum(lQ4aii,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ4bii= fQ4bii(alphaQ4bii)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat_after_b
+global Z
+global thetaQ4bii0
+global y
+for a=[1:2404]
+for b=[1:100]
+  PQ4bii(a,b)=exp(thetaQ4bii0(b)+alphaQ4bii(1)*Z(a,b)+ alphaQ4bii(2)*pan_kids(a,b)+alphaQ4bii(3)*ramp_boat(a,b)+alphaQ4bii(4)*rest_kids(a,b)+alphaQ4bii(5)*wall_boat_after_b(a,b));
+    end
+end
+lQ4bii=log((PQ4bii./sum(PQ4bii,2)).^y);
+LQ4bii=-(sum(lQ4bii,"all"));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ4cii = fQ4cii(alphaQ3)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z_c
+global theta0
+global y
+for a=[1:2404]
+for b=[1:82]
+  PQ3(a,b)=exp(theta0(b)+alphaQ3(1)*Z_c(a,b)+ alphaQ3(2)*pan_kids(a,b)+alphaQ3(3)*ramp_boat(a,b)+alphaQ3(4)*rest_kids(a,b)+alphaQ3(5)*wall_boat(a,b));
+    end
+end
+lQ3=log((PQ3./sum(PQ3,2)).^y);
+LQ4cii=-(sum(lQ3,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ4dii= fQ4dii(alphaQ4dii)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z_after
+global thetaQ4dii0
+global y
+for a=[1:2404]
+for b=[1:100]
+  PQ4dii(a,b)=exp(thetaQ4dii0(b)+alphaQ4dii(1)*Z_after(a,b)+ alphaQ4dii(2)*pan_kids(a,b)+alphaQ4dii(3)*ramp_boat(a,b)+alphaQ4dii(4)*rest_kids(a,b)+alphaQ4dii(5)*wall_boat(a,b));
+    end
+end
+lQ4dii=log((PQ4dii./sum(PQ4dii,2)).^y);
+LQ4dii=-(sum(lQ4dii,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%
+function LQ311 = fQ311(alphaQ311)
+global Z
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global y
+global shares
+for a=[1:2404]
+for b=[1:100]
+  PQ311(a,b)=exp(alphaQ311(1)*ramp(b)+alphaQ311(2)*restroom(b)+alphaQ311(3)*walleye(b)+alphaQ311(4)*salmon(b)+alphaQ311(5)*panfish(b)+alphaQ311(6)*shares(b)+alphaQ311(7)*Z(a,b)); 
+end
+end
+LsumbQ311=PQ311./sum(PQ311,2);
+ lQ311=log(LsumbQ311.^y);
+LQ311=-(sum(lQ311,"all"));
+end
+%%%%%%%%%%%%%%%%%%%%%%%
+function LQ312 = fQ312(alphaQ312)
+global pan_kids
+global ramp_boat
+global rest_kids
+global wall_boat
+global Z
+global ramp
+global restroom
+global salmon
+global walleye
+global panfish
+global y
+global shares
+for a=[1:2404]
+for b=[1:100]
+  PQ312(a,b)=exp(alphaQ312(1)*ramp(b)+alphaQ312(2)*restroom(b)+alphaQ312(3)*walleye(b)+alphaQ312(4)*salmon(b)+alphaQ312(5)*panfish(b)+alphaQ312(6)*pan_kids(a,b)+alphaQ312(7)*ramp_boat(a,b)+alphaQ312(8)*rest_kids(a,b)+alphaQ312(9)*wall_boat(a,b)+alphaQ312(10)*Z(a,b)+alphaQ312(11)*shares(b)); 
+end
+end
+LsumbQ312=PQ312./sum(PQ312,2);
+ lQ312=log(LsumbQ312.^y);
+LQ312=-(sum(lQ312,"all"));
+end
+
+
+
